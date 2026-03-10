@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Cuentas de Cobro · JNSystems</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --accent: #1a3350;
+  --gold: #b8953a;
+  --ink: #1c1c1c;
+  --ink-light: #555;
+  --rule: #c8b89a;
+  --rule-light: #e2d8cc;
+  --cream: #f7f3ec;
+  --red: #c62828;
+  --bg: #f0ede8;
+  --border: #ddd8d0;
+  --input-bg: #fafaf8;
+  --sidebar-w: 300px;
+}
+
+body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+/* ===== LAYOUT ===== */
+#app { display: flex; min-height: 100vh; }
+
+/* ===== SIDEBAR ===== */
+#sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--accent); color: white;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.sidebar-logo .company { font-family: 'Crimson Pro', serif; font-size: 22px; font-weight: 700; color: white; }
+.sidebar-logo .tagline { font-size: 10px; color: rgba(255,255,255,0.55); letter-spacing: 0.5px; margin-top: 2px; }
+.sidebar-nav { padding: 16px 0; flex: 1; }
+.nav-section { padding: 8px 24px 4px; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); font-weight: 700; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 24px; font-size: 13px; color: rgba(255,255,255,0.7);
+  cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+.nav-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--gold); }
+.nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+.nav-item .badge { margin-left: auto; background: var(--gold); color: white; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+.sidebar-footer { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.6; }
+
+/* ===== MAIN ===== */
+#main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.main-header {
+  background: white; border-bottom: 1px solid var(--border);
+  padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.main-header h1 { font-family: 'Crimson Pro', serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+.main-header .subtitle { font-size: 12px; color: var(--ink-light); margin-top: 1px; }
+.header-actions { display: flex; gap: 10px; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 4px; font-size: 13px;
+  font-weight: 600; cursor: pointer; border: none;
+  font-family: 'Source Sans 3', sans-serif; transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: #22415f; }
+.btn-secondary { background: white; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn-secondary:hover { background: #f0f4f8; }
+.btn-gold { background: var(--gold); color: white; }
+.btn-gold:hover { background: #a0802e; }
+.btn-danger { background: var(--red); color: white; }
+.btn-danger:hover { background: #a82020; }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-xs { padding: 3px 8px; font-size: 10px; }
+
+/* ===== VIEWS ===== */
+.view { display: none; flex: 1; }
+.view.active { display: block; }
+
+/* ===== FORM ===== */
+.form-content { padding: 28px 32px; max-width: 780px; }
+.form-section { background: white; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 20px; overflow: hidden; }
+.form-section-header { background: #f5f3ef; padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.form-section-num { width: 22px; height: 22px; background: var(--accent); color: white; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.form-section-title { font-size: 13px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+.form-section-body { padding: 20px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.field input, .field select, .field textarea {
+  border: 1.5px solid var(--border); border-radius: 4px; padding: 8px 10px;
+  font-size: 13px; font-family: 'Source Sans 3', sans-serif;
+  background: var(--input-bg); color: var(--ink); transition: border-color 0.15s; outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: white; }
+.field textarea { resize: vertical; min-height: 70px; }
+.field .hint { font-size: 10px; color: #999; }
+
+/* Monto grande */
+.monto-preview {
+  margin-top: 12px; padding: 16px 20px;
+  background: #eef2f7; border: 1.5px solid var(--accent);
+  border-radius: 4px; text-align: center;
+}
+.monto-preview .mp-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-light); font-weight: 700; }
+.monto-preview .mp-value { font-family: 'Crimson Pro', serif; font-size: 32px; font-weight: 700; color: var(--accent); margin: 4px 0; }
+.monto-preview .mp-letras { font-size: 11px; color: var(--ink-light); font-style: italic; }
+
+/* ===== PREVIEW BANNER ===== */
+.preview-banner {
+  background: #fff8e1; border-bottom: 2px solid var(--gold);
+  padding: 10px 32px; display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: #7a6020;
+}
+.preview-banner strong { color: var(--gold); }
+
+/* ===== PRINT ===== */
+@media print {
+  #sidebar, .main-header, .preview-banner,
+  #view-form, #view-history, #toast,
+  .header-actions, .nav-item, .nav-section,
+  .sidebar-footer, .sidebar-logo { display: none !important; }
+  #view-preview { display: block !important; }
+  #app, #main { display: block !important; }
+  body, #app, #main, #view-preview { background: white !important; margin: 0 !important; padding: 0 !important; }
+  #preview-wrapper { padding: 0 !important; background: white !important; margin: 0 !important; }
+  .doc-page { box-shadow: none !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+  @page { margin: 0.75in; size: letter; }
+}
+
+/* ===== TOAST ===== */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--accent); color: white;
+  padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  transform: translateY(60px); opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 999;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ===== HISTORY ===== */
+.history-content { padding: 28px 32px; max-width: 780px; }
+.history-table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; font-size: 13px; }
+.history-table th { padding: 10px 16px; background: var(--accent); color: white; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.history-table td { padding: 10px 16px; border-bottom: 1px solid #eee; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: #fafaf8; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--ink-light); }
+.empty-state .es-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state .es-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+
+/* ===== DOCUMENT STYLES ===== */
+#preview-wrapper { padding: 32px; background: #ccc; }
+
+.doc-page {
+  width: 816px; max-width: 100%; margin: 0 auto;
+  background: white;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.25), 0 1px 6px rgba(0,0,0,0.12);
+  padding: 56px 64px;
+  font-family: 'Source Sans 3', sans-serif; color: var(--ink);
+}
+
+/* Header del documento */
+.doc-date { font-size: 10.5px; color: var(--ink-light); margin-bottom: 28px; }
+
+.doc-brand { text-align: center; padding-bottom: 24px; border-bottom: 1px solid #e0dbd2; margin-bottom: 28px; }
+.doc-brand-name { font-family: 'Crimson Pro', serif; font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+.doc-brand-tagline { font-size: 11px; color: var(--ink-light); margin-top: 3px; letter-spacing: 0.3px; }
+.doc-brand-contact { font-size: 10.5px; color: var(--ink-light); margin-top: 6px; }
+
+/* Título cuenta de cobro */
+.doc-title-block { text-align: center; padding: 20px 0 24px; border-bottom: 1px solid #e0dbd2; margin-bottom: 28px; }
+.doc-title { font-family: 'Source Sans 3', sans-serif; font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: 2px; text-transform: uppercase; }
+.doc-subtitle { font-size: 11.5px; color: var(--ink-light); margin-top: 5px; }
+
+/* Debe a */
+.doc-deuda-block { text-align: center; padding: 16px 0 20px; margin-bottom: 0; }
+.doc-deuda-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-light); margin-bottom: 6px; }
+.doc-deuda-nombre { font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+
+/* Monto */
+.doc-monto-block {
+  margin: 20px 0;
+  background: #edf1f7;
+  border-radius: 4px;
+  padding: 28px 20px;
+  text-align: center;
+}
+.doc-monto-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-light); margin-bottom: 10px; }
+.doc-monto-valor { font-family: 'Crimson Pro', serif; font-size: 52px; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+.doc-monto-letras { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-light); }
+
+/* Concepto */
+.doc-concepto-block { padding: 20px 0; border-top: 1px solid #e0dbd2; border-bottom: 1px solid #e0dbd2; margin-bottom: 36px; text-align: center; }
+.doc-concepto-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-light); margin-bottom: 6px; }
+.doc-concepto-texto { font-size: 12.5px; color: var(--ink); line-height: 1.6; }
+
+/* Firma */
+.doc-firma-block { text-align: center; padding-top: 8px; }
+.doc-firma-saludo { font-size: 10.5px; color: var(--ink-light); margin-bottom: 40px; }
+.doc-firma-linea { width: 160px; border-top: 1px solid #999; margin: 0 auto 10px; }
+.doc-firma-nombre { font-family: 'Crimson Pro', serif; font-size: 15px; font-weight: 700; color: var(--ink); }
+.doc-firma-cc { font-size: 10.5px; color: var(--ink-light); margin-top: 2px; }
+.doc-firma-empresa { font-size: 10px; color: var(--ink-light); margin-top: 4px; line-height: 1.6; }
+
+/* Footer */
+.doc-footer { margin-top: 36px; padding-top: 10px; border-top: 1px solid #e0dbd2; text-align: center; font-size: 8.5px; color: #bbb; }
+
+@media (max-width: 860px) {
+  #sidebar { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <div class="company">JNSystems</div>
+      <div class="tagline">Cuentas de Cobro</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Documento</div>
+      <div class="nav-item active" onclick="showView('form')" id="nav-form">
+        <span class="icon">📝</span> Nueva Cuenta de Cobro
+      </div>
+      <div class="nav-item" onclick="showView('preview')" id="nav-preview">
+        <span class="icon">👁️</span> Vista Previa / PDF
+      </div>
+      <div class="nav-section" style="margin-top:12px">Historial</div>
+      <div class="nav-item" onclick="showView('history')" id="nav-history">
+        <span class="icon">📁</span> Guardadas
+        <span class="badge" id="history-count">0</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      JNSystems · Seguridad Electrónica<br>
+      Sebastian Toro · Cristian Lizarazo
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <div class="main-header">
+      <div>
+        <h1 id="header-title">Nueva Cuenta de Cobro</h1>
+        <div class="subtitle" id="header-subtitle">Complete los datos para generar el documento</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="resetForm()">🔄 Limpiar</button>
+        <button class="btn btn-primary" onclick="saveDoc()">💾 Guardar</button>
+        <button class="btn btn-gold" onclick="showView('preview')">👁️ Vista Previa / PDF</button>
+      </div>
+    </div>
+
+    <!-- ===== FORM ===== -->
+    <div id="view-form" class="view active">
+      <div class="form-content">
+
+        <!-- DATOS DEL DOCUMENTO -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-num">1</div>
+            <div class="form-section-title">Datos del documento</div>
+          </div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Cliente / Proyecto *</label>
+                <input type="text" id="f-cliente" placeholder="Ej: Edificio Venecia" oninput="updateHeader()">
+              </div>
+              <div class="field">
+                <label>Fecha</label>
+                <input type="date" id="f-fecha">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEBE A -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-num">2</div>
+            <div class="form-section-title">Debe a</div>
+          </div>
+          <div class="form-section-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Nombre (empresa o persona)</label>
+                <input type="text" id="f-debe-nombre" value="JNSystems">
+              </div>
+              <div class="field">
+                <label>Representantes (opcional)</label>
+                <input type="text" id="f-debe-rep" value="Sebastian Toro Velasco y Cristian Ricardo Lizarazo">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONTO -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-num">3</div>
+            <div class="form-section-title">Monto</div>
+          </div>
+          <div class="form-section-body">
+            <div class="field">
+              <label>Valor en pesos colombianos *</label>
+              <input type="number" id="f-monto" placeholder="Ej: 250000" min="0" step="1000" oninput="updateMonto()">
+            </div>
+            <div class="monto-preview" id="monto-preview" style="display:none">
+              <div class="mp-label">El documento mostrará</div>
+              <div class="mp-value" id="mp-valor">$0</div>
+              <div class="mp-letras" id="mp-letras">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONCEPTO -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-num">4</div>
+            <div class="form-section-title">Concepto de cobro</div>
+          </div>
+          <div class="form-section-body">
+            <div class="field">
+              <label>Descripción del servicio o cobro *</label>
+              <textarea id="f-concepto" rows="3" placeholder="Ej: Entrega de excedente por compra e instalación de módulo WiFi para puerta vehicular motor Pitbull 400"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- FIRMA -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <div class="form-section-num">5</div>
+            <div class="form-section-title">Datos del firmante</div>
+          </div>
+          <div class="form-section-body">
+            <div class="form-grid-3">
+              <div class="field">
+                <label>Nombre completo</label>
+                <input type="text" id="f-firma-nombre" value="Sebastián Toro Velasco">
+              </div>
+              <div class="field">
+                <label>Cédula (C.C.)</label>
+                <input type="text" id="f-firma-cc" value="1107834274">
+              </div>
+              <div class="field">
+                <label>Cargo / Empresa</label>
+                <input type="text" id="f-firma-cargo" value="JNSystems · Seguridad &amp; Automatización">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /view-form -->
+
+    <!-- ===== PREVIEW ===== -->
+    <div id="view-preview" class="view">
+      <div class="preview-banner">
+        <span>👁️ <strong>Vista previa</strong> — Usa <strong>Ctrl+P</strong> → destino "Guardar como PDF" → desactiva "Encabezados y pies de página"</span>
+        <button class="btn btn-gold btn-sm" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+      </div>
+      <div id="preview-wrapper">
+        <div class="doc-page" id="doc-output"></div>
+      </div>
+    </div><!-- /view-preview -->
+
+    <!-- ===== HISTORY ===== -->
+    <div id="view-history" class="view">
+      <div class="history-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div>
+            <h2 style="font-family:'Crimson Pro',serif;font-size:22px;color:var(--accent)">Cuentas de cobro guardadas</h2>
+            <p style="font-size:12px;color:var(--ink-light);margin-top:2px">Guardadas localmente en este navegador</p>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="clearHistory()">🗑️ Borrar todo</button>
+        </div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+let docHistory = JSON.parse(localStorage.getItem('jns_cobros') || '[]');
+
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  document.getElementById('f-fecha').value = today.toISOString().split('T')[0];
+  updateHistoryCount();
+});
+
+// ===== NAV =====
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'preview') generatePreview();
+  if (name === 'history') renderHistory();
+  const titles = { form: 'Nueva Cuenta de Cobro', preview: 'Vista Previa / PDF', history: 'Cuentas Guardadas' };
+  const subs = { form: 'Complete los datos para generar el documento', preview: 'Revise y exporte como PDF', history: 'Historial de cuentas de cobro guardadas' };
+  document.getElementById('header-title').textContent = titles[name];
+  document.getElementById('header-subtitle').textContent = subs[name];
+}
+
+// ===== MONTO =====
+function updateMonto() {
+  const val = parseInt(document.getElementById('f-monto').value) || 0;
+  const preview = document.getElementById('monto-preview');
+  if (val <= 0) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  document.getElementById('mp-valor').textContent = fmt(val);
+  document.getElementById('mp-letras').textContent = numToLetras(val).toUpperCase() + ' PESOS';
+}
+
+// ===== NUMBER TO WORDS (COP) =====
+function numToLetras(n) {
+  if (n === 0) return 'cero';
+  const u = ['','un','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiún','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'];
+  const d = ['','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+  const c = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+  function grupo(n) {
+    let r = '';
+    const h = Math.floor(n/100), t = n % 100, un = n % 10, de = Math.floor(t/10);
+    if (h) r += (h === 1 && t === 0 ? 'cien' : c[h]) + (t ? ' ' : '');
+    if (t < 30) r += u[t];
+    else r += d[de] + (un ? ' y ' + u[un] : '');
+    return r.trim();
+  }
+  let result = '', neg = n < 0;
+  n = Math.abs(Math.round(n));
+  const mil = Math.floor(n / 1000), resto = n % 1000;
+  if (mil) {
+    if (mil === 1) result += 'mil';
+    else result += grupo(mil) + ' mil';
+  }
+  if (resto) result += (mil ? ' ' : '') + grupo(resto);
+  return (neg ? 'menos ' : '') + result.trim();
+}
+
+// ===== GENERATE PREVIEW =====
+function generatePreview() {
+  const cliente   = document.getElementById('f-cliente').value || 'Sin nombre';
+  const fechaRaw  = document.getElementById('f-fecha').value;
+  const debeNombre = document.getElementById('f-debe-nombre').value || 'JNSystems';
+  const debeRep   = document.getElementById('f-debe-rep').value;
+  const monto     = parseInt(document.getElementById('f-monto').value) || 0;
+  const concepto  = document.getElementById('f-concepto').value || '';
+  const firmaNombre = document.getElementById('f-firma-nombre').value;
+  const firmaCC   = document.getElementById('f-firma-cc').value;
+  const firmaCargo = document.getElementById('f-firma-cargo').value;
+
+  let fechaStr = '—', fechaCorta = '—', mesAnio = '';
+  if (fechaRaw) {
+    const d = new Date(fechaRaw + 'T12:00:00');
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const meses2 = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    fechaStr = `Santiago de Cali, ${meses2[d.getMonth()]} ${d.getDate().toString().padStart(2,'0')} de ${d.getFullYear()}`;
+    fechaCorta = `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+    mesAnio = meses2[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  const letras = monto ? numToLetras(monto).toUpperCase() + ' PESOS' : '—';
+  const debeBlock = debeRep
+    ? `<div class="doc-deuda-nombre">${esc(debeNombre)}<br>${esc(debeRep)}</div>`
+    : `<div class="doc-deuda-nombre">${esc(debeNombre)}</div>`;
+
+  const html = `
+    <div class="doc-date">${fechaStr}</div>
+
+    <div class="doc-brand">
+      <div class="doc-brand-name">JNSystems</div>
+      <div class="doc-brand-tagline">Seguridad Electrónica &amp; Automatización</div>
+      <div class="doc-brand-contact">300 4060143 · jnsystemsproject@gmail.com · Santiago de Cali, Colombia</div>
+    </div>
+
+    <div class="doc-title-block">
+      <div class="doc-title">Cuenta de Cobro</div>
+      <div class="doc-subtitle">${esc(cliente)} · ${fechaCorta}</div>
+    </div>
+
+    <div class="doc-deuda-block">
+      <div class="doc-deuda-label">Debe a</div>
+      ${debeBlock}
+    </div>
+
+    <div class="doc-monto-block">
+      <div class="doc-monto-label">La suma de</div>
+      <div class="doc-monto-valor">${fmt(monto)}</div>
+      <div class="doc-monto-letras">${letras}</div>
+    </div>
+
+    <div class="doc-concepto-block">
+      <div class="doc-concepto-label">Por concepto de</div>
+      <div class="doc-concepto-texto">${esc(concepto).replace(/\n/g,'<br>')}</div>
+    </div>
+
+    <div class="doc-firma-block">
+      <div class="doc-firma-saludo">Cordialmente,</div>
+      <div class="doc-firma-linea"></div>
+      <div class="doc-firma-nombre">${esc(firmaNombre)}</div>
+      ${firmaCC ? `<div class="doc-firma-cc">C.C: ${esc(firmaCC)}</div>` : ''}
+      <div class="doc-firma-empresa">${esc(firmaCargo)}<br>300 4060143 · jnsystemsproject@gmail.com</div>
+    </div>
+
+    <div class="doc-footer">
+      JNSystems · Seguridad Electrónica &amp; Automatización · Cuenta de Cobro ${esc(cliente)} · ${mesAnio}
+    </div>
+  `;
+
+  document.getElementById('doc-output').innerHTML = html;
+}
+
+// ===== SAVE / HISTORY =====
+function saveDoc() {
+  const cliente = document.getElementById('f-cliente').value || 'Sin nombre';
+  const fecha = document.getElementById('f-fecha').value;
+  const monto = parseInt(document.getElementById('f-monto').value) || 0;
+  const doc = {
+    id: Date.now(), cliente, fecha, monto,
+    debeNombre: document.getElementById('f-debe-nombre').value,
+    debeRep: document.getElementById('f-debe-rep').value,
+    concepto: document.getElementById('f-concepto').value,
+    firmaNombre: document.getElementById('f-firma-nombre').value,
+    firmaCC: document.getElementById('f-firma-cc').value,
+    firmaCargo: document.getElementById('f-firma-cargo').value,
+  };
+  docHistory.unshift(doc);
+  localStorage.setItem('jns_cobros', JSON.stringify(docHistory));
+  updateHistoryCount();
+  toast('💾 Cuenta de cobro guardada');
+}
+
+function loadDoc(id) {
+  const q = docHistory.find(x => x.id === id);
+  if (!q) return;
+  document.getElementById('f-cliente').value   = q.cliente || '';
+  document.getElementById('f-fecha').value     = q.fecha || '';
+  document.getElementById('f-debe-nombre').value = q.debeNombre || '';
+  document.getElementById('f-debe-rep').value  = q.debeRep || '';
+  document.getElementById('f-monto').value     = q.monto || '';
+  document.getElementById('f-concepto').value  = q.concepto || '';
+  document.getElementById('f-firma-nombre').value = q.firmaNombre || '';
+  document.getElementById('f-firma-cc').value  = q.firmaCC || '';
+  document.getElementById('f-firma-cargo').value = q.firmaCargo || '';
+  updateMonto();
+  updateHeader();
+  showView('form');
+  toast('📂 Cuenta de cobro cargada');
+}
+
+function deleteDoc(id) {
+  docHistory = docHistory.filter(x => x.id !== id);
+  localStorage.setItem('jns_cobros', JSON.stringify(docHistory));
+  updateHistoryCount(); renderHistory();
+  toast('🗑️ Eliminada');
+}
+
+function clearHistory() {
+  if (!confirm('¿Borrar todas las cuentas de cobro guardadas?')) return;
+  docHistory = [];
+  localStorage.setItem('jns_cobros', JSON.stringify(docHistory));
+  updateHistoryCount(); renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (docHistory.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📁</div><div class="es-title">No hay cuentas guardadas</div><p>Crea y guarda tu primera cuenta de cobro para verla aquí.</p></div>`;
+    return;
+  }
+  let html = `<table class="history-table"><thead><tr><th>Cliente</th><th>Fecha</th><th>Monto</th><th>Acciones</th></tr></thead><tbody>`;
+  docHistory.forEach(q => {
+    html += `<tr>
+      <td><strong>${esc(q.cliente)}</strong></td>
+      <td>${q.fecha || '—'}</td>
+      <td>${fmt(q.monto)}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-xs" onclick="loadDoc(${q.id})">📂 Cargar</button>
+        <button class="btn btn-gold btn-xs" onclick="loadDoc(${q.id});setTimeout(()=>showView('preview'),100)">👁️ PDF</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteDoc(${q.id})">✕</button>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function updateHistoryCount() {
+  document.getElementById('history-count').textContent = docHistory.length;
+}
+
+// ===== UTILS =====
+function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function updateHeader() {
+  const c = document.getElementById('f-cliente').value;
+  document.getElementById('header-subtitle').textContent = c ? `Cliente: ${c}` : 'Complete los datos para generar el documento';
+}
+function resetForm() {
+  if (!confirm('¿Limpiar el formulario?')) return;
+  document.getElementById('f-cliente').value = '';
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-debe-nombre').value = 'JNSystems';
+  document.getElementById('f-debe-rep').value = 'Sebastian Toro Velasco y Cristian Ricardo Lizarazo';
+  document.getElementById('f-monto').value = '';
+  document.getElementById('f-concepto').value = '';
+  document.getElementById('f-firma-nombre').value = 'Sebastián Toro Velasco';
+  document.getElementById('f-firma-cc').value = '1107834274';
+  document.getElementById('f-firma-cargo').value = 'JNSystems · Seguridad & Automatización';
+  document.getElementById('monto-preview').style.display = 'none';
+  updateHeader();
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
