@@ -1443,6 +1443,410 @@ footer {
   <svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.552 4.122 1.523 5.858L0 24l6.335-1.507A11.934 11.934 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.003-1.367l-.36-.213-3.76.894.953-3.67-.234-.376A9.818 9.818 0 0 1 12 2.182c5.428 0 9.818 4.39 9.818 9.818 0 5.429-4.39 9.818-9.818 9.818z"/></svg>
 </a>
 
+<!-- ── AI CHAT WIDGET ── -->
+<style>
+.srg-chat-btn {
+  position: fixed; bottom: 90px; right: 24px; z-index: 9100;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, #1a6ef5, #0c4bc4);
+  border: none; cursor: pointer; color: white;
+  box-shadow: 0 4px 20px rgba(26,110,245,.45);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s, box-shadow .2s;
+}
+.srg-chat-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(26,110,245,.6); }
+.srg-chat-btn .srg-notif {
+  position: absolute; top: -2px; right: -2px;
+  width: 14px; height: 14px; background: #ef4444; border-radius: 50%;
+  border: 2px solid var(--navy); font-size: 8px; color: white;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+
+.srg-chat-panel {
+  position: fixed; bottom: 152px; right: 24px; z-index: 9100;
+  width: 360px; max-height: 520px;
+  background: #0c1d38; border: 1px solid rgba(58,139,255,.2);
+  border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: scale(.92) translateY(16px); opacity: 0;
+  pointer-events: none;
+  transition: transform .25s cubic-bezier(.16,1,.3,1), opacity .25s;
+}
+.srg-chat-panel.open {
+  transform: scale(1) translateY(0); opacity: 1; pointer-events: all;
+}
+
+.srg-chat-header {
+  padding: 14px 16px; display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, #0c1d38, #112850);
+  border-bottom: 1px solid rgba(58,139,255,.15); flex-shrink: 0;
+}
+.srg-chat-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #1a6ef5, #0c4bc4);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 16px;
+}
+.srg-chat-hname { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: white; }
+.srg-chat-hstatus { font-size: 10px; color: #22c55e; margin-top: 1px; display: flex; align-items: center; gap: 4px; }
+.srg-chat-hstatus::before { content: ''; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+.srg-chat-close { margin-left: auto; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; padding: 2px 6px; border-radius: 4px; transition: color .15s; }
+.srg-chat-close:hover { color: white; }
+
+.srg-chat-messages {
+  flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.srg-chat-messages::-webkit-scrollbar { width: 4px; }
+.srg-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+.srg-msg { max-width: 82%; display: flex; flex-direction: column; gap: 2px; }
+.srg-msg.bot { align-self: flex-start; }
+.srg-msg.user { align-self: flex-end; }
+.srg-msg-bubble {
+  padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+  font-family: var(--font-body);
+}
+.srg-msg.bot .srg-msg-bubble {
+  background: rgba(26,110,245,.12); color: #e2e8f0;
+  border: 1px solid rgba(26,110,245,.2); border-bottom-left-radius: 4px;
+}
+.srg-msg.user .srg-msg-bubble {
+  background: linear-gradient(135deg, #1a6ef5, #0c4bc4); color: white;
+  border-bottom-right-radius: 4px;
+}
+.srg-msg-time { font-size: 9px; color: #475569; padding: 0 4px; }
+.srg-msg.user .srg-msg-time { text-align: right; }
+
+.srg-typing { display: flex; align-items: center; gap: 4px; padding: 10px 13px; }
+.srg-typing span { width: 6px; height: 6px; background: #3d8bff; border-radius: 50%; animation: srg-bounce .8s infinite; }
+.srg-typing span:nth-child(2) { animation-delay: .15s; }
+.srg-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes srg-bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)} }
+
+.srg-quick-replies { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; flex-shrink: 0; }
+.srg-qr {
+  font-size: 11px; padding: 5px 10px; border-radius: 20px;
+  background: rgba(26,110,245,.1); border: 1px solid rgba(26,110,245,.3);
+  color: #6aaeff; cursor: pointer; transition: all .15s; font-family: var(--font-body);
+}
+.srg-qr:hover { background: rgba(26,110,245,.25); color: white; border-color: var(--blue2); }
+
+.srg-chat-input-row {
+  display: flex; gap: 8px; padding: 10px 12px;
+  border-top: 1px solid rgba(58,139,255,.12); flex-shrink: 0;
+  background: rgba(6,15,30,.5);
+}
+.srg-chat-input {
+  flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(58,139,255,.2);
+  border-radius: 10px; color: white; padding: 9px 12px; font-size: 13px;
+  font-family: var(--font-body); outline: none; resize: none; max-height: 80px;
+  transition: border-color .15s;
+}
+.srg-chat-input::placeholder { color: #475569; }
+.srg-chat-input:focus { border-color: rgba(26,110,245,.5); }
+.srg-chat-send {
+  width: 38px; height: 38px; border-radius: 10px; align-self: flex-end;
+  background: linear-gradient(135deg, #1a6ef5, #0c4bc4); border: none;
+  color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: opacity .15s; flex-shrink: 0;
+}
+.srg-chat-send:hover { opacity: .85; }
+.srg-chat-send:disabled { opacity: .4; cursor: not-allowed; }
+
+.srg-lead-form { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.srg-lead-input {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(58,139,255,.2);
+  border-radius: 8px; color: white; padding: 8px 12px; font-size: 12px;
+  font-family: var(--font-body); outline: none; transition: border-color .15s;
+}
+.srg-lead-input:focus { border-color: rgba(26,110,245,.5); }
+.srg-lead-input::placeholder { color: #475569; }
+.srg-lead-btn {
+  padding: 9px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  background: linear-gradient(135deg, #1a6ef5, #0c4bc4); border: none;
+  color: white; cursor: pointer; font-family: var(--font-body); transition: opacity .15s;
+}
+.srg-lead-btn:hover { opacity: .85; }
+
+@media (max-width: 420px) {
+  .srg-chat-panel { width: calc(100vw - 24px); right: 12px; bottom: 140px; }
+  .srg-chat-btn { right: 12px; bottom: 82px; }
+}
+</style>
+
+<!-- Botón flotante del chat -->
+<button class="srg-chat-btn" id="srgChatBtn" aria-label="Chat con SRGuard">
+  <div class="srg-notif" id="srgNotif">1</div>
+  <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</button>
+
+<!-- Panel de chat -->
+<div class="srg-chat-panel" id="srgChatPanel">
+  <div class="srg-chat-header">
+    <div class="srg-chat-avatar">🛡️</div>
+    <div>
+      <div class="srg-chat-hname">Asistente SRGuard</div>
+      <div class="srg-chat-hstatus">En línea ahora</div>
+    </div>
+    <button class="srg-chat-close" id="srgChatClose">✕</button>
+  </div>
+  <div class="srg-chat-messages" id="srgMessages"></div>
+  <div class="srg-quick-replies" id="srgQuickReplies"></div>
+  <div class="srg-chat-input-row">
+    <textarea class="srg-chat-input" id="srgInput" placeholder="Escribe tu consulta…" rows="1"></textarea>
+    <button class="srg-chat-send" id="srgSend">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── SRGuard AI Chat Widget ──────────────────────────────────
+(function() {
+  const CLAUDE_KEY = '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';
+  const WA_NUMBER  = '573004060143';
+
+  const SYSTEM_PROMPT = `Eres el asistente virtual de SRGuard, empresa de seguridad electrónica en Cali, Colombia (también conocida como JNSystems). Eres amigable, directo y profesional.
+
+SERVICIOS:
+- CCTV y videovigilancia (cámaras análogas e IP, DVR/NVR, almacenamiento)
+- Videoportería inteligente (Akuvox) para conjuntos residenciales
+- Control de acceso (chapas eléctricas, lectores RFID, barreras vehiculares)
+- Automatización y alarmas
+
+COBERTURA: Cali y Valle del Cauca
+
+CONTACTO: WhatsApp 300 4060143
+
+INSTRUCCIONES:
+1. Responde siempre en español, de forma breve y directa (máx 3 oraciones por respuesta).
+2. Si el cliente describe lo que necesita, ayúdale a entender qué solución le conviene.
+3. Cuando el cliente quiera una cotización o precio, píde: nombre, tipo de propiedad y número de contacto. Luego muestra el formulario con la función mostrarFormulario().
+4. No inventes precios exactos — di que la cotización depende del proyecto y que la hacen gratis.
+5. Nunca digas que eres Claude ni menciones Anthropic.
+6. Si detectas intención de cotizar, responde con el texto EXACTO: [MOSTRAR_FORMULARIO]
+7. Mantén un tono cercano, como si fuera el equipo de SRGuard respondiendo.`;
+
+  let historial = [];
+  let panelAbierto = false;
+  let leadEnviado  = false;
+
+  const panel    = document.getElementById('srgChatPanel');
+  const btn      = document.getElementById('srgChatBtn');
+  const closeBtn = document.getElementById('srgChatClose');
+  const messages = document.getElementById('srgMessages');
+  const input    = document.getElementById('srgInput');
+  const sendBtn  = document.getElementById('srgSend');
+  const quickR   = document.getElementById('srgQuickReplies');
+  const notif    = document.getElementById('srgNotif');
+
+  // Abrir / cerrar
+  btn.addEventListener('click', () => {
+    panelAbierto = !panelAbierto;
+    panel.classList.toggle('open', panelAbierto);
+    if (panelAbierto) {
+      notif.style.display = 'none';
+      if (messages.children.length === 0) iniciarChat();
+      setTimeout(() => input.focus(), 300);
+    }
+  });
+  closeBtn.addEventListener('click', () => {
+    panelAbierto = false;
+    panel.classList.remove('open');
+  });
+
+  // Iniciar con mensaje de bienvenida
+  function iniciarChat() {
+    agregarMensaje('bot', '¡Hola! 👋 Soy el asistente de SRGuard. ¿En qué puedo ayudarte hoy?');
+    mostrarQuickReplies([
+      '¿Qué servicios ofrecen?',
+      'Quiero una cotización',
+      'Videoportería para conjunto',
+      'Cámaras para mi negocio',
+    ]);
+  }
+
+  // Quick replies
+  function mostrarQuickReplies(opciones) {
+    quickR.innerHTML = '';
+    opciones.forEach(op => {
+      const b = document.createElement('button');
+      b.className = 'srg-qr';
+      b.textContent = op;
+      b.addEventListener('click', () => {
+        quickR.innerHTML = '';
+        enviarMensaje(op);
+      });
+      quickR.appendChild(b);
+    });
+  }
+
+  // Agregar mensaje al chat
+  function agregarMensaje(tipo, texto) {
+    const div = document.createElement('div');
+    div.className = `srg-msg ${tipo}`;
+    const now = new Date();
+    const hora = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    div.innerHTML = `
+      <div class="srg-msg-bubble">${formatearTexto(texto)}</div>
+      <div class="srg-msg-time">${hora}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  // Formatear texto (negritas, saltos de línea)
+  function formatearTexto(texto) {
+    return texto
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  // Typing indicator
+  function mostrarTyping() {
+    const div = document.createElement('div');
+    div.className = 'srg-msg bot';
+    div.id = 'srgTyping';
+    div.innerHTML = `<div class="srg-msg-bubble srg-typing"><span></span><span></span><span></span></div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  function ocultarTyping() {
+    const t = document.getElementById('srgTyping');
+    if (t) t.remove();
+  }
+
+  // Formulario de lead
+  function mostrarFormulario() {
+    if (leadEnviado) {
+      agregarMensaje('bot', '¡Ya tenemos tus datos! Nuestro equipo te contactará muy pronto por WhatsApp. 😊');
+      return;
+    }
+    const div = document.createElement('div');
+    div.className = 'srg-msg bot';
+    div.style.maxWidth = '100%';
+    div.innerHTML = `
+      <div class="srg-msg-bubble" style="width:100%">
+        <div style="margin-bottom:8px;font-weight:600">📋 Cuéntanos un poco más:</div>
+        <div class="srg-lead-form">
+          <input class="srg-lead-input" id="leadNombre" placeholder="Tu nombre *">
+          <input class="srg-lead-input" id="leadTel" placeholder="WhatsApp / Teléfono *">
+          <input class="srg-lead-input" id="leadPropiedad" placeholder="Tipo de propiedad (conjunto, negocio…)">
+          <textarea class="srg-lead-input" id="leadNota" placeholder="¿Qué necesitas? (opcional)" rows="2" style="resize:none"></textarea>
+          <button class="srg-lead-btn" id="leadEnviar">Solicitar cotización gratuita →</button>
+        </div>
+      </div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+
+    document.getElementById('leadEnviar').addEventListener('click', () => {
+      const nombre    = document.getElementById('leadNombre').value.trim();
+      const tel       = document.getElementById('leadTel').value.trim();
+      const propiedad = document.getElementById('leadPropiedad').value.trim();
+      const nota      = document.getElementById('leadNota').value.trim();
+
+      if (!nombre || !tel) {
+        document.getElementById('leadNombre').style.borderColor = nombre ? '' : 'rgba(239,68,68,.6)';
+        document.getElementById('leadTel').style.borderColor    = tel    ? '' : 'rgba(239,68,68,.6)';
+        return;
+      }
+
+      // Abrir WhatsApp con los datos prellenados
+      const msg = encodeURIComponent(
+        `Hola SRGuard! Me contacté desde su página web.\n\n` +
+        `*Nombre:* ${nombre}\n` +
+        `*Teléfono:* ${tel}\n` +
+        `*Propiedad:* ${propiedad || 'No especificado'}\n` +
+        `*Necesidad:* ${nota || 'Solicitar cotización'}`
+      );
+      window.open(`https://wa.me/${WA_NUMBER}?text=${msg}`, '_blank');
+
+      leadEnviado = true;
+      div.remove();
+      agregarMensaje('bot', `¡Perfecto ${nombre}! 🎉 Te abrimos WhatsApp con tu información. Nuestro equipo te responde en menos de 24 horas. ¡Hasta pronto!`);
+    });
+  }
+
+  // Enviar mensaje a Claude
+  async function enviarMensaje(texto) {
+    if (!texto.trim()) return;
+
+    agregarMensaje('user', texto);
+    historial.push({ role: 'user', content: texto });
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    quickR.innerHTML = '';
+    mostrarTyping();
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key':         CLAUDE_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type':      'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model:      'claude-haiku-4-5-20251001',
+          max_tokens: 400,
+          system:     SYSTEM_PROMPT,
+          messages:   historial.slice(-8),
+        }),
+      });
+
+      const data      = await response.json();
+      const respuesta = data.content?.[0]?.text || 'Hubo un error. Intenta de nuevo.';
+
+      historial.push({ role: 'assistant', content: respuesta });
+      ocultarTyping();
+
+      // Detectar si debe mostrar formulario
+      if (respuesta.includes('[MOSTRAR_FORMULARIO]')) {
+        const textoLimpio = respuesta.replace('[MOSTRAR_FORMULARIO]', '').trim();
+        if (textoLimpio) agregarMensaje('bot', textoLimpio);
+        mostrarFormulario();
+      } else {
+        agregarMensaje('bot', respuesta);
+        // Sugerir quick replies contextuales
+        if (historial.length <= 4) {
+          mostrarQuickReplies(['Ver servicios', 'Pedir cotización', 'Hablar por WhatsApp']);
+        }
+      }
+
+    } catch(err) {
+      ocultarTyping();
+      agregarMensaje('bot', 'Tuve un problema conectándome. Puedes escribirnos directamente por WhatsApp 📲');
+    }
+
+    sendBtn.disabled = false;
+  }
+
+  // Input handlers
+  sendBtn.addEventListener('click', () => enviarMensaje(input.value));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje(input.value); }
+  });
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+  });
+
+  // Mostrar notificación después de 4 segundos si no han abierto el chat
+  setTimeout(() => {
+    if (!panelAbierto) notif.style.display = 'flex';
+  }, 4000);
+
+})();
+</script>
+
 <script>
 // Custom cursor
 const cursor = document.getElementById('cursor');
