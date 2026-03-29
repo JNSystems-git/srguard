@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JNSystems · Cotizaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --accent: #1a3350;
+  --accent2: #22415f;
+  --gold: #b8953a;
+  --gold-light: #f7f0e0;
+  --ink: #1c1c1c;
+  --ink-light: #666;
+  --bg: #f0ede8;
+  --white: #ffffff;
+  --border: #ddd8d0;
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* ===== LAYOUT ===== */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== HEADER ===== */
+header {
+  background: var(--accent);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+.logo-area { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.logo-text { font-family: 'Crimson Pro', serif; font-size: 22px; font-weight: 700; color: white; }
+.logo-sub { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; margin-top: 1px; }
+.header-contact {
+  font-size: 12px; color: rgba(255,255,255,0.6);
+  text-align: right; line-height: 1.7;
+}
+.header-contact a { color: rgba(255,255,255,0.8); text-decoration: none; }
+.header-contact a:hover { color: var(--gold); }
+
+/* ===== HERO ===== */
+.hero {
+  background: linear-gradient(135deg, var(--accent) 0%, #22415f 60%, #1a3350 100%);
+  padding: 72px 32px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(184,149,58,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-block;
+  background: rgba(184,149,58,0.15);
+  border: 1px solid rgba(184,149,58,0.3);
+  color: var(--gold);
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2px;
+  padding: 5px 16px; border-radius: 20px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 700; color: white;
+  line-height: 1.15; margin-bottom: 16px;
+}
+.hero h1 span { color: var(--gold); }
+.hero p {
+  font-size: 16px; color: rgba(255,255,255,0.7);
+  max-width: 520px; margin: 0 auto 36px;
+  line-height: 1.7;
+}
+.hero-divider {
+  width: 48px; height: 3px;
+  background: var(--gold);
+  margin: 0 auto 36px;
+  border-radius: 2px;
+}
+
+/* ===== STEPS ===== */
+.steps-section {
+  padding: 64px 32px;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+}
+.section-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2px;
+  color: var(--gold); margin-bottom: 8px;
+}
+.section-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--accent); margin-bottom: 8px;
+}
+.section-sub {
+  font-size: 14px; color: var(--ink-light);
+  margin-bottom: 40px; line-height: 1.6;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.step-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.step-card:hover {
+  box-shadow: 0 8px 32px rgba(26,51,80,0.1);
+  transform: translateY(-2px);
+}
+.step-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px; background: var(--gold);
+}
+.step-num {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700;
+  font-family: 'Crimson Pro', serif;
+  margin-bottom: 14px;
+}
+.step-title {
+  font-size: 14px; font-weight: 700;
+  color: var(--accent); margin-bottom: 6px;
+}
+.step-desc { font-size: 12.5px; color: var(--ink-light); line-height: 1.65; }
+
+/* ===== CONTACT SECTION ===== */
+.contact-section {
+  background: white;
+  border-top: 1px solid var(--border);
+  padding: 64px 32px;
+}
+.contact-inner {
+  max-width: 860px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+  align-items: start;
+}
+.contact-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 26px; font-weight: 700;
+  color: var(--accent); margin-bottom: 8px;
+}
+.contact-sub { font-size: 14px; color: var(--ink-light); line-height: 1.6; margin-bottom: 28px; }
+
+.contact-cards { display: flex; flex-direction: column; gap: 12px; }
+.contact-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--ink);
+  background: #fafaf8;
+  transition: all 0.15s;
+}
+.contact-card:hover { border-color: var(--accent); background: #f0f4f8; }
+.contact-card.whatsapp:hover { border-color: #25d366; background: #f0fdf4; }
+.contact-icon {
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.contact-icon.wpp { background: #e8fdf0; }
+.contact-icon.mail { background: #e8edf5; }
+.contact-icon.web { background: var(--gold-light); }
+.contact-card-text { flex: 1; }
+.contact-card-label { font-size: 10px; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.contact-card-value { font-size: 13.5px; font-weight: 600; color: var(--accent); margin-top: 1px; }
+
+.info-box {
+  background: linear-gradient(135deg, var(--accent), #22415f);
+  border-radius: 10px;
+  padding: 32px 28px;
+  color: white;
+}
+.info-box-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 20px; font-weight: 700;
+  color: white; margin-bottom: 16px;
+}
+.info-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 14px; font-size: 13px;
+  color: rgba(255,255,255,0.8); line-height: 1.5;
+}
+.info-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+}
+.info-box-footer {
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  font-size: 11px; color: rgba(255,255,255,0.45);
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: var(--accent);
+  padding: 24px 32px;
+  margin-top: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-brand { font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 700; color: white; }
+.footer-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+.footer-right { font-size: 11px; color: rgba(255,255,255,0.4); text-align: right; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 700px) {
+  header { padding: 0 18px; }
+  .header-contact { display: none; }
+  .hero { padding: 48px 20px 56px; }
+  .steps-section { padding: 44px 18px; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .contact-section { padding: 44px 18px; }
+  .contact-inner { grid-template-columns: 1fr; gap: 32px; }
+  footer { padding: 20px 18px; }
+  .footer-right { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">🔒</div>
+      <div>
+        <div class="logo-text">JNSystems</div>
+        <div class="logo-sub">Seguridad Electrónica &amp; Automatización</div>
+      </div>
+    </div>
+    <div class="header-contact">
+      <a href="tel:3004060143">300 406 0143</a><br>
+      <a href="https://jnsystems.com.co" target="_blank">jnsystems.com.co</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">Portal de Cotizaciones</div>
+    <h1>Recibiste una cotización<br>de <span>JNSystems</span></h1>
+    <div class="hero-divider"></div>
+    <p>El link a tu cotización te lo enviamos directamente por WhatsApp o correo. Si no lo tienes, contáctanos y te lo reenviamos en minutos.</p>
+  </section>
+
+  <!-- STEPS -->
+  <section class="steps-section">
+    <div class="section-label">¿Cómo funciona?</div>
+    <div class="section-title">Así de fácil es revisar tu cotización</div>
+    <div class="section-sub">No necesitas instalar nada ni crear ninguna cuenta. Solo abre el link que te enviamos.</div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-title">Recibe el link</div>
+        <div class="step-desc">Te enviamos un link personalizado por WhatsApp o correo electrónico con tu cotización.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-title">Ábrelo en tu celular</div>
+        <div class="step-desc">Funciona en cualquier navegador — Chrome, Safari, Edge. Sin descargas ni instalaciones.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-title">Revisa y decide</div>
+        <div class="step-desc">Ve el detalle de equipos, precios y totales. Si tienes preguntas, escríbenos directamente.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact-section">
+    <div class="contact-inner">
+      <div>
+        <div class="section-label">¿Necesitas ayuda?</div>
+        <div class="contact-title">Estamos disponibles para ti</div>
+        <div class="contact-sub">Si no encuentras tu cotización, tienes preguntas sobre los equipos, o quieres solicitar una nueva propuesta, contáctanos por cualquiera de estos medios.</div>
+        <div class="contact-cards">
+          <a href="https://wa.me/573004060143?text=Hola%2C+necesito+ayuda+con+mi+cotizaci%C3%B3n+de+JNSystems" class="contact-card whatsapp" target="_blank">
+            <div class="contact-icon wpp">💬</div>
+            <div class="contact-card-text">
+              <div class="contact-card-label">WhatsApp</div>
+              <div class="contact-card-value">300 406 0143</div>
+            </div>
+          </a>
+          <a href="mailto:jnsystemsproject@gmail.com" class="contact-card mail">
+            <div class="contact-icon mail">✉️</div>
+            <div class="contact-card-text">
+              <div class="contact-card-label">Correo electrónico</div>
+              <div class="contact-card-value">jnsystemsproject@gmail.com</div>
+            </div>
+          </a>
+          <a href="https://jnsystems.com.co" target="_blank" class="contact-card">
+            <div class="contact-icon web">🌐</div>
+            <div class="contact-card-text">
+              <div class="contact-card-label">Sitio web</div>
+              <div class="contact-card-value">jnsystems.com.co</div>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="info-box">
+        <div class="info-box-title">¿Por qué JNSystems?</div>
+        <div class="info-item"><div class="info-dot"></div><span>Equipos de marcas reconocidas con garantía de 1 año</span></div>
+        <div class="info-item"><div class="info-dot"></div><span>Instalación profesional con garantía de 6 meses</span></div>
+        <div class="info-item"><div class="info-dot"></div><span>Control remoto desde tu celular — en cualquier lugar</span></div>
+        <div class="info-item"><div class="info-dot"></div><span>Soporte post-instalación y capacitación incluida</span></div>
+        <div class="info-item"><div class="info-dot"></div><span>Más de 15 años de experiencia en el sector tecnológico</span></div>
+        <div class="info-box-footer">Santiago de Cali, Colombia · Seguridad Electrónica &amp; Automatización</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">JNSystems</div>
+      <div class="footer-sub">Seguridad Electrónica &amp; Automatización · Cali, Colombia</div>
+    </div>
+    <div class="footer-right">
+      300 406 0143 · jnsystems.com.co
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
